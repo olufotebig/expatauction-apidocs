@@ -1,0 +1,227 @@
+swagger: "2.0"
+info:
+  version: "0.0.1"
+  title: ExpatAuction API
+# during dev, should point to your local machine
+host: localhost:10010
+# basePath prefixes all resource paths 
+basePath: /
+# 
+schemes:
+  # tip: remove http to make production-grade
+  - http
+# format of bodies a client can send (Content-Type)
+consumes:
+  - application/json
+# format of the responses to the client (Accepts)
+produces:
+  - application/json
+paths:
+  /auctionsearch:
+    x-swagger-router-controller: auction
+    get:
+      description: returns all upcoming auctions
+      operationId: search_auctions
+      responses:
+        "200":
+          description: success
+          schema:
+            type: array
+            items: 
+              $ref: "#/definitions/AuctionSummary"
+        "404":
+          description: error message
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    post:
+      description: Create new auction
+      parameters:
+        - name: auction
+          in: body
+          description: auction to add to auction store
+          required: true
+          schema:
+            $ref: "#/definitions/NewAuction"
+      responses:
+        "200":
+          description: auction response
+          schema:
+            $ref: "#/definitions/Auction"
+        "404":
+          description: error message
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  
+  /auctions:
+    x-swagger-router-controller: auction
+    get:
+      description: returns auctions that belongs to seller
+      operationId: get_auctions
+      responses:
+        "200":
+          description: success
+          schema:
+            type: array
+            items: 
+              $ref: "#/definitions/AuctionSummary"
+        "404":
+          description: error message
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    post:
+      description: Create new auction
+      parameters:
+        - name: auction
+          in: body
+          description: auction to add to auction store
+          required: true
+          schema:
+            $ref: "#/definitions/NewAuction"
+      responses:
+        "200":
+          description: auction response
+          schema:
+            $ref: "#/definitions/Auction"
+        "404":
+          description: error message
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  
+            
+  /auctions/{auctionId}:
+    x-swagger-router-controller: auction
+    get:
+      description: returns auction with id auctionId
+      parameters:
+        - name: auctionId
+          in: path
+          type: string
+          required: true
+          
+      responses:
+        "200":
+          description: auction
+          schema:
+            $ref: "#/definitions/Auction"
+        "404":
+          description: error message
+  /auctions/{auctionId}/items:
+    x-swagger-router-controller: auction
+    get:
+      description: returns all auction items that belongs to an auction
+      parameters:
+        - name: auctionId
+          description: id of auction
+          in: path
+          required: true
+          type: string
+      responses:
+        "200":
+          description: auction items response
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/AuctionItem"
+        "404":
+          description: error message
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    post:
+      description: Create new auction item and add to auction
+      parameters:
+        - name: auctionId
+          description: id of auction
+          in: path
+          required: true
+          type: string
+        - name: auctionItem
+          in: body
+          description: auction item to add
+          required: true
+          schema:
+            $ref: "#/definitions/NewAuctionItem"
+      responses:
+        "404":
+          description: error message
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /auctionfeed:
+    get:
+      description: gets items selling live
+      responses:
+        "200":
+          description: currently auctioning items
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/LiveAuctionItem"
+  /swagger:
+    x-swagger-pipe: swagger_raw
+# complex objects have schema definitions
+definitions:
+  LiveAuctionItem:
+    allOf:
+      - $ref: "#/definitions/AuctionItem"
+      - required:
+        - goingPrice
+        properties:
+          goingPrice:
+            type: string
+  AuctionItem:
+    allOf:
+      - $ref: "#/definitions/NewAuctionItem"
+      - required:
+        - uuid
+        properties:
+          uuid:
+            type: string
+  NewAuctionItem:
+    required:
+      - name
+      - minPrice
+    properties:
+      name:
+        type: string
+      minPrice:
+        type: string
+      description:
+        type: string
+      coverPhoto:
+        type: string
+        
+  
+  Auction:
+    allOf:
+      - $ref: "#/definitions/AuctionSummary"
+      - required:
+        - coverImage
+        properties:
+          coverImage: 
+            type: string
+      
+  AuctionSummary:
+    allOf:
+      - $ref: "#/definitions/NewAuction"
+      - required:
+        - uuid
+        properties:
+          uuid:
+            type: string
+        
+  NewAuction:
+    required:
+      - name
+      - datetime
+    properties:
+      name:
+        type: string
+      datetime:
+        type: string
+        format: date-time
+        
+  ErrorResponse:
+    required:
+      - message
+    properties:
+      message:
+        type: string
